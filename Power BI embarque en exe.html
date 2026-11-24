@@ -1,0 +1,876 @@
+<title>Power BI embarqué en .exe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --surface-2:#EAEFF3; --line:#D3DBE2;
+  --ink:#18212C; --ink-2:#46525F; --ink-3:#6B7783;
+  --accent:#1D5C70; --accent-soft:#DCEBF0;
+  --pbi:#E8B10E;
+  --yes:#23774A; --yes-bg:#DDF0E4;
+  --cfg:#2F5DA8; --cfg-bg:#DFE8F7;
+  --part:#B4610E; --part-bg:#F8E7D2;
+  --no:#B3322B; --no-bg:#F7DEDB;
+  --unk:#5F6670; --unk-bg:#E6E8EB;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono:"IBM Plex Mono", Consolas, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11171E; --surface:#18212B; --surface-2:#202B37; --line:#2E3A47;
+    --ink:#E6ECF1; --ink-2:#B4BFC9; --ink-3:#8794A1;
+    --accent:#6FB6CC; --accent-soft:#1C3440;
+    --pbi:#F2C94C;
+    --yes:#62C28C; --yes-bg:#183526;
+    --cfg:#86A8E8; --cfg-bg:#1D2A44;
+    --part:#E9A25A; --part-bg:#3A2816;
+    --no:#F08A80; --no-bg:#3D1F1D;
+    --unk:#A4ADB7; --unk-bg:#29313A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11171E; --surface:#18212B; --surface-2:#202B37; --line:#2E3A47;
+  --ink:#E6ECF1; --ink-2:#B4BFC9; --ink-3:#8794A1;
+  --accent:#6FB6CC; --accent-soft:#1C3440;
+  --pbi:#F2C94C;
+  --yes:#62C28C; --yes-bg:#183526;
+  --cfg:#86A8E8; --cfg-bg:#1D2A44;
+  --part:#E9A25A; --part-bg:#3A2816;
+  --no:#F08A80; --no-bg:#3D1F1D;
+  --unk:#A4ADB7; --unk-bg:#29313A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:16px;padding-block:0 64px}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+code,.mono{font-family:var(--f-mono);font-size:.84em}
+code{background:var(--surface-2);padding:.08em .35em;border-radius:3px;word-break:break-word}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.45rem,2.6vw,1.9rem);margin-bottom:.4rem}
+h3{font-size:1.12rem;font-weight:700}
+p{margin:0 0 .9rem}
+.wrap{max-width:1180px;margin:0 auto}
+.layout{display:grid;gap:40px}
+@media (min-width:1100px){.layout{grid-template-columns:200px minmax(0,1fr)}}
+aside.toc{display:none}
+@media (min-width:1100px){
+  aside.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-family:var(--f-display);font-size:.88rem}
+  aside.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:1px solid var(--line)}
+  aside.toc a{display:block;padding:4px 0 4px 14px;color:var(--ink-2);text-decoration:none;margin-left:-1px;border-left:2px solid transparent}
+  aside.toc a:hover{color:var(--ink);border-left-color:var(--accent)}
+}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.5rem;display:block}
+section{padding-block:44px 8px;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+.prose{max-width:68ch}
+.lede{font-size:1.08rem;color:var(--ink-2)}
+/* header */
+header.top{padding-block:40px 28px;max-width:1180px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px}
+.bars{display:inline-flex;align-items:flex-end;gap:2px;height:16px}
+.bars i{display:block;width:4px;background:var(--pbi);border-radius:1px}
+.bars i:nth-child(1){height:7px}.bars i:nth-child(2){height:12px}.bars i:nth-child(3){height:16px}
+header.top h1{font-size:clamp(2rem,4.6vw,3.2rem);max-width:20ch;margin-bottom:14px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--f-mono);font-size:.78rem;color:var(--ink-3)}
+.mobile-toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+@media (min-width:1100px){.mobile-toc{display:none}}
+.mobile-toc a{font-family:var(--f-display);font-size:.82rem;padding:4px 10px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink-2);background:var(--surface)}
+/* verdict */
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(18px,3vw,30px)}
+.verdict .big{font-family:var(--f-display);font-size:clamp(1.3rem,2.6vw,1.75rem);font-weight:700;line-height:1.25;margin-bottom:12px;text-wrap:balance}
+.tri{display:grid;gap:14px;margin-top:20px}
+@media (min-width:760px){.tri{grid-template-columns:repeat(3,1fr)}}
+.tri > div{border-top:3px solid var(--k);padding-top:10px}
+.tri h3{display:flex;align-items:center;gap:8px;font-size:1rem;color:var(--k)}
+.tri ul{margin:8px 0 0;padding-left:1.1em;font-size:.95rem;color:var(--ink-2)}
+.tri li{margin-bottom:3px}
+.k-yes{--k:var(--yes)} .k-cfg{--k:var(--cfg)} .k-no{--k:var(--no)}
+.callout{margin-top:22px;padding:14px 16px;border-radius:8px;background:var(--part-bg);color:var(--ink);font-size:.97rem}
+.callout strong{color:var(--part)}
+.callout.gain{background:var(--cfg-bg)}
+.callout.gain strong{color:var(--cfg)}
+/* gains */
+.gains{display:grid;gap:12px;margin-top:16px}
+@media (min-width:860px){.gains{grid-template-columns:repeat(2,1fr)}}
+.gains > div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.gains > div.native{border-color:var(--accent);grid-column:1/-1}
+.gains h3{font-size:1.04rem}
+.gains p{font-size:.94rem;color:var(--ink-2);margin:0}
+.gains .api{font-size:.86rem}
+.gains pre{margin-top:6px}
+.gains .lim{font-size:.86rem;color:var(--ink-3)}
+/* pills */
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:.72rem;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap;line-height:1.5}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-y{color:var(--yes);background:var(--yes-bg)}
+.s-c{color:var(--cfg);background:var(--cfg-bg)}
+.s-p{color:var(--part);background:var(--part-bg)}
+.s-n{color:var(--no);background:var(--no-bg)}
+.s-u{color:var(--unk);background:var(--unk-bg)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:.86rem;color:var(--ink-2);margin:12px 0 0}
+.legend span.pill{margin-right:4px}
+/* diagram */
+figure{margin:18px 0 0}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto}
+.diagram svg{display:block;width:100%;min-width:760px;height:auto;color:var(--ink)}
+figcaption{font-size:.92rem;color:var(--ink-2);margin-top:10px;max-width:72ch}
+.d-host{fill:none;stroke:var(--line);stroke-width:1.5}
+.d-layer{fill:var(--surface-2);stroke:var(--ink-3);stroke-width:1}
+.d-missing{fill:var(--no-bg);stroke:var(--no);stroke-width:1.5;stroke-dasharray:6 4}
+.d-risk{fill:var(--part-bg);stroke:var(--part);stroke-width:1.5}
+.d-sdk{fill:var(--cfg-bg);stroke:var(--cfg);stroke-width:1.2}
+.d-svc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.d-t{fill:var(--ink);font-family:var(--f-display);font-size:13px;font-weight:700}
+.d-s{fill:var(--ink-2);font-family:var(--f-body);font-size:12px}
+.d-m{fill:var(--ink-3);font-family:var(--f-mono);font-size:10.5px}
+.d-no{fill:var(--no);font-family:var(--f-display);font-size:12.5px;font-weight:700}
+.d-risk-t{fill:var(--part);font-family:var(--f-display);font-size:12px;font-weight:700}
+.d-cfg-t{fill:var(--cfg);font-family:var(--f-mono);font-size:10.5px}
+.d-arrow{stroke:var(--ink-3);stroke-width:1.3;fill:none}
+.d-head{fill:var(--ink-3)}
+/* matrix */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{font:500 .85rem var(--f-display);border:0;background:none;color:var(--ink-2);padding:7px 12px;cursor:pointer}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.search{flex:1 1 200px;min-width:0;max-width:320px;font:.92rem var(--f-body);padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.count{font-family:var(--f-mono);font-size:.78rem;color:var(--ink-3)}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+thead th{font:700 .8rem var(--f-display);color:var(--ink-2);background:var(--surface-2);position:sticky;top:0;z-index:1}
+thead th.modeA{color:var(--accent)}
+td.feat{font-weight:600;min-width:180px}
+td.note{color:var(--ink-2);font-size:.86rem;min-width:260px}
+td.st{white-space:nowrap}
+tr.cat td{background:var(--bg);font:700 .74rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding-block:7px}
+td.colA{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+tbody tr:last-child td{border-bottom:0}
+/* losses */
+.loss-list{display:grid;gap:0;margin-top:14px;border-top:1px solid var(--line)}
+.loss{display:grid;gap:6px 18px;padding:16px 0;border-bottom:1px solid var(--line)}
+@media (min-width:820px){.loss{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.loss h3{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:4px}
+.loss p{font-size:.95rem;color:var(--ink-2);margin:0}
+.loss .fix{font-size:.93rem;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.loss .fix b{font-family:var(--f-display);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:3px}
+.src{font-family:var(--f-mono);font-size:.74rem;color:var(--ink-3);margin-top:6px;display:block}
+.src a{color:var(--ink-3)}
+.sev{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:4px}
+.sev-high{background:var(--no-bg);color:var(--no)}
+.sev-med{background:var(--part-bg);color:var(--part)}
+.sev-low{background:var(--unk-bg);color:var(--unk)}
+/* config checklist */
+.cfg-grid{display:grid;gap:14px;margin-top:16px}
+@media (min-width:820px){.cfg-grid{grid-template-columns:1fr 1fr}}
+.cfg-block{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.cfg-block h3{margin-bottom:8px}
+.cfg-block ul{margin:0;padding-left:1.1em;font-size:.94rem}
+.cfg-block li{margin-bottom:6px}
+pre{background:var(--surface-2);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--f-mono);font-size:.8rem;line-height:1.55;margin:10px 0 0;color:var(--ink)}
+/* plumbing table */
+.plumb td:first-child{font-weight:600;min-width:170px}
+.plumb td:nth-child(2){color:var(--ink-2);min-width:220px}
+.plumb td:nth-child(3){min-width:240px;font-size:.88rem}
+/* timeline */
+.timeline{display:grid;gap:0;margin-top:16px;max-width:760px}
+.tl{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tl .when{font-family:var(--f-mono);font-size:.85rem;font-weight:500;color:var(--accent)}
+.tl.past .when{color:var(--ink-3);text-decoration:line-through}
+.tl p{margin:0;font-size:.95rem}
+/* support ladder */
+.ladder{display:grid;gap:10px;margin-top:16px;max-width:820px}
+.rung{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.rung.here{border-color:var(--part);box-shadow:inset 3px 0 0 var(--part)}
+.rung .tag{font-family:var(--f-mono);font-size:.72rem;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.rung p{margin:0;font-size:.95rem}
+blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--line);color:var(--ink-2);font-style:italic;max-width:68ch}
+blockquote cite{display:block;font-style:normal;font-family:var(--f-mono);font-size:.74rem;color:var(--ink-3);margin-top:6px}
+/* alternatives */
+.alt{display:grid;gap:12px;margin-top:16px}
+@media (min-width:820px){.alt{grid-template-columns:repeat(2,1fr)}}
+.alt > div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.alt h3{margin-bottom:6px}
+.alt p{font-size:.94rem;color:var(--ink-2);margin:0 0 6px}
+.alt .gives{font-size:.88rem}
+/* reco */
+.reco{background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:clamp(18px,3vw,28px);max-width:860px}
+.reco .big{font-family:var(--f-display);font-size:1.3rem;font-weight:700;margin-bottom:10px;line-height:1.3}
+.tree{display:grid;gap:8px;margin-top:16px;max-width:860px}
+.branch{display:grid;gap:4px 16px;padding:12px 0;border-bottom:1px solid var(--line)}
+@media (min-width:760px){.branch{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}}
+.branch .if{font-family:var(--f-display);font-weight:700;font-size:.98rem}
+.branch .then{font-size:.95rem;color:var(--ink-2)}
+ol.steps{padding-left:1.3em;max-width:72ch}
+ol.steps li{margin-bottom:8px;font-size:.96rem}
+.small{font-size:.9rem;color:var(--ink-2)}
+.sources{columns:1;column-gap:32px;font-size:.84rem;padding-left:1.1em}
+@media (min-width:860px){.sources{columns:2}}
+.sources li{break-inside:avoid;margin-bottom:6px;color:var(--ink-2)}
+.sources a{word-break:break-word}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<header class="top">
+  <div class="brand"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Dossier technique · Power BI embedded analytics</div>
+  <h1>Embarquer ses rapports Power BI dans un .exe : ce qu'on perd, ce qu'on gagne</h1>
+  <p class="lede prose">Analyse centrée sur ton cas — <strong>mode A, « embed for your organization »</strong> (jeton Entra de l'utilisateur + SDK JavaScript <code>powerbi-client</code>), utilisateurs internes — avec en contrepoint l'option « navigateur sans barre » (mode E) et le Power BI Service classique.</p>
+  <div class="meta"><span>État au 20 novembre 2026</span><span>Sources : Microsoft Learn, GitHub, communauté</span><span>≈ 140 constats sourcés</span></div>
+  <nav class="mobile-toc" aria-label="Sommaire">
+    <a href="#verdict">Verdict</a><a href="#schema">Schéma</a><a href="#matrice">Matrice</a><a href="#pertes">Pertes</a><a href="#activer">À activer</a><a href="#gains">Gains</a><a href="#cout-exe">Coût de l'exe</a><a href="#support">Supporté ?</a><a href="#licences">Licences</a><a href="#echeances">Échéances</a><a href="#alternatives">Alternatives</a><a href="#reco">Recommandation</a><a href="#methode">Méthode</a>
+  </nav>
+</header>
+
+<div class="wrap layout">
+<aside class="toc" aria-label="Sommaire">
+  <ol>
+    <li><a href="#verdict">Verdict</a></li>
+    <li><a href="#schema">Ce qui change, en un schéma</a></li>
+    <li><a href="#matrice">Matrice des fonctionnalités</a></li>
+    <li><a href="#pertes">Pertes en mode A</a></li>
+    <li><a href="#activer">Désactivé par défaut</a></li>
+    <li><a href="#gains">Ce que l'embarqué apporte</a></li>
+    <li><a href="#cout-exe">Ce que l'exe ajoute</a></li>
+    <li><a href="#support">Est-ce supporté ?</a></li>
+    <li><a href="#licences">Licences & capacité</a></li>
+    <li><a href="#echeances">Échéances</a></li>
+    <li><a href="#alternatives">Alternatives</a></li>
+    <li><a href="#reco">Recommandation</a></li>
+    <li><a href="#methode">Méthode & limites</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</aside>
+
+<main>
+
+<section id="verdict">
+  <span class="eyebrow">Verdict</span>
+  <div class="verdict">
+    <p class="big">En mode A, ton exe affiche le rapport, pas Power BI. Le rapport lui-même est quasi intact ; c'est tout ce qu'il y a autour qui disparaît.</p>
+    <p class="prose">Le SDK place <em>un seul élément</em> (un rapport, un visuel, un tableau de bord…) dans une iframe. Tout ce qui relève de « l'application Power BI » — navigation, abonnements, alertes, Excel, Explorer, scorecards — n'existe pas dans ce cadre. Une bonne partie du confort utilisateur est récupérable, mais <strong>désactivée par défaut</strong> : il faut l'activer explicitement.</p>
+    <div class="tri">
+      <div class="k-yes"><h3>Conservé tel quel</h3>
+        <ul>
+          <li>Visuels, filtres, segments, synchro des segments</li>
+          <li>Exploration (drill) et extraction <em>dans</em> le rapport</li>
+          <li>Signets du rapport, « Personnaliser ce visuel »</li>
+          <li>Export des données d'un visuel, copier en image</li>
+          <li>RLS / OLS sur l'identité réelle, étiquettes de confidentialité</li>
+          <li>Audit par utilisateur</li>
+        </ul>
+      </div>
+      <div class="k-cfg"><h3>Récupérable, à activer</h3>
+        <ul>
+          <li>Barre d'actions (export, partage, favoris)</li>
+          <li>Signets personnels</li>
+          <li>Filtres persistants + « Rétablir les valeurs par défaut »</li>
+          <li>Copilot dans le rapport</li>
+          <li>Plein écran, zoom, mode édition, mise en page mobile</li>
+        </ul>
+      </div>
+      <div class="k-no"><h3>Perdu</h3>
+        <ul>
+          <li>Accueil, Récents, Parcourir, Apps (navigation du service)</li>
+          <li>Abonnements e-mail, alertes de données</li>
+          <li>Analyser dans Excel</li>
+          <li>Extraction <em>entre</em> rapports</li>
+          <li>Explorer ces données, scorecards, Teams</li>
+          <li>Statistiques d'utilisation fiables</li>
+        </ul>
+      </div>
+    </div>
+    <p class="callout gain"><strong>En contrepartie, l'embarqué permet ce que le service ne permet pas</strong> : tes propres commandes dans le clic droit et le menu « … » d'un visuel, du code qui réagit à chaque sélection ou clic sur un bouton, des filtres pilotés par ton application, une mise en page recomposée. Ces gains viennent du SDK JavaScript : ils existent aussi dans une simple page web. Ce que <em>seul l'exe</em> apporte, c'est le pont vers ton logiciel et vers Windows. <a href="#gains">Détail plus bas.</a></p>
+    <p class="callout"><strong>Le vrai risque n'est pas fonctionnel.</strong> Il tient à trois choses : (1) Microsoft ne documente nulle part l'hébergement de Power BI dans un WebView2 d'application Windows — ni pour l'autoriser, ni pour l'interdire ; (2) l'accès conditionnel Entra peut bloquer un exe là où Edge passe ; (3) tu deviens responsable du « navigateur » : authentification, renouvellement du jeton toutes les heures, runtime, proxy, antivirus, téléchargements, impression, accessibilité.</p>
+  </div>
+</section>
+
+<section id="schema">
+  <span class="eyebrow">Mécanique</span>
+  <h2>Ce qui change, en un schéma</h2>
+  <p class="prose">Mêmes données, même modèle sémantique, même RLS, mêmes licences dans les trois cas. Ce qui diffère, c'est la couche que tu remplaces.</p>
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 960 420" role="img" aria-label="Comparaison de trois architectures : dans le navigateur, le shell du service, le rapport et la session sont fournis par Power BI. Dans l'exe en mode A, le shell du service est absent, le rapport est piloté par le SDK et la session repose sur un jeton Entra obtenu par MSAL et WAM à renouveler toutes les heures. Dans l'exe en mode E, tout est présent mais la session tourne dans une WebView2 qui n'est pas un navigateur supporté.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-head"/></marker>
+        </defs>
+        <!-- column 1 -->
+        <text x="160" y="24" text-anchor="middle" class="d-t">Aujourd'hui : navigateur</text>
+        <text x="160" y="40" text-anchor="middle" class="d-m">Edge / Chrome → app.powerbi.com</text>
+        <rect x="20" y="52" width="280" height="276" rx="10" class="d-host"/>
+        <rect x="36" y="68" width="248" height="78" rx="6" class="d-layer"/>
+        <text x="50" y="90" class="d-t">Shell du service</text>
+        <text x="50" y="110" class="d-s">Accueil · Apps · Abonnements</text>
+        <text x="50" y="127" class="d-s">Alertes · Commentaires · Explore</text>
+        <rect x="36" y="158" width="248" height="72" rx="6" class="d-layer"/>
+        <text x="50" y="180" class="d-t">Rapport</text>
+        <text x="50" y="200" class="d-s">Visuels · filtres · signets · drill</text>
+        <text x="50" y="217" class="d-s">Export · Excel · Copilot</text>
+        <rect x="36" y="242" width="248" height="70" rx="6" class="d-layer"/>
+        <text x="50" y="264" class="d-t">Session</text>
+        <text x="50" y="283" class="d-s">Cookie Power BI, renouvelé</text>
+        <text x="50" y="299" class="d-s">par le service lui-même</text>
+
+        <!-- column 2 -->
+        <text x="480" y="24" text-anchor="middle" class="d-t">Ton exe : mode A</text>
+        <text x="480" y="40" text-anchor="middle" class="d-m">WPF/WinForms + WebView2 + SDK</text>
+        <rect x="340" y="52" width="280" height="276" rx="10" class="d-host"/>
+        <rect x="356" y="68" width="248" height="78" rx="6" class="d-missing"/>
+        <text x="370" y="90" class="d-no">Shell du service : absent</text>
+        <text x="370" y="110" class="d-s">À reconstruire (API REST) ou</text>
+        <text x="370" y="127" class="d-s">à renvoyer vers le navigateur</text>
+        <rect x="356" y="158" width="248" height="72" rx="6" class="d-layer"/>
+        <text x="370" y="180" class="d-t">Rapport (iframe)</text>
+        <text x="370" y="200" class="d-s">Quasi intact, options à activer</text>
+        <rect x="370" y="208" width="220" height="16" rx="3" class="d-sdk"/>
+        <text x="378" y="220" class="d-cfg-t">powerbi.embed() · settings · events</text>
+        <rect x="356" y="242" width="248" height="70" rx="6" class="d-sdk"/>
+        <text x="370" y="264" class="d-t">Jeton Entra (ton code)</text>
+        <text x="370" y="283" class="d-s">MSAL.NET + WAM, injecté dans</text>
+        <text x="370" y="299" class="d-s">la page · expire en ~60-90 min</text>
+
+        <!-- column 3 -->
+        <text x="800" y="24" text-anchor="middle" class="d-t">Ton exe : mode E</text>
+        <text x="800" y="40" text-anchor="middle" class="d-m">WebView2 → app.powerbi.com</text>
+        <rect x="660" y="52" width="280" height="276" rx="10" class="d-host"/>
+        <rect x="676" y="68" width="248" height="78" rx="6" class="d-layer"/>
+        <text x="690" y="90" class="d-t">Shell du service</text>
+        <text x="690" y="110" class="d-s">Tout présent, mais</text>
+        <text x="690" y="127" class="d-s">aucune API pour le piloter</text>
+        <rect x="676" y="158" width="248" height="72" rx="6" class="d-layer"/>
+        <text x="690" y="180" class="d-t">Rapport</text>
+        <text x="690" y="200" class="d-s">Identique au navigateur</text>
+        <text x="690" y="217" class="d-s">Pas d'événements, pas de SDK</text>
+        <rect x="676" y="242" width="248" height="70" rx="6" class="d-risk"/>
+        <text x="690" y="264" class="d-risk-t">Session dans la WebView2</text>
+        <text x="690" y="283" class="d-s">Hors liste des navigateurs</text>
+        <text x="690" y="299" class="d-s">supportés · accès cond. fragile</text>
+
+        <!-- arrows to service -->
+        <line x1="160" y1="328" x2="160" y2="364" class="d-arrow" marker-end="url(#ah)"/>
+        <line x1="480" y1="328" x2="480" y2="364" class="d-arrow" marker-end="url(#ah)"/>
+        <line x1="800" y1="328" x2="800" y2="364" class="d-arrow" marker-end="url(#ah)"/>
+        <text x="168" y="350" class="d-m">cookie</text>
+        <text x="488" y="350" class="d-m">tokenType: Aad</text>
+        <text x="808" y="350" class="d-m">cookie (1re partie)</text>
+        <rect x="20" y="368" width="920" height="40" rx="8" class="d-svc"/>
+        <text x="480" y="393" text-anchor="middle" class="d-t">Power BI Service — mêmes données, même RLS, mêmes licences</text>
+      </svg>
+    </div>
+    <figcaption>En mode A, la couche « shell du service » disparaît et tu fournis toi-même la session (jeton Entra à renouveler). En mode E, rien ne disparaît, mais c'est la session qui devient fragile : WebView2 n'est pas un navigateur reconnu par Power BI ni par l'accès conditionnel Entra.</figcaption>
+  </figure>
+</section>
+
+<section id="matrice">
+  <span class="eyebrow">Inventaire</span>
+  <h2>Matrice des fonctionnalités</h2>
+  <p class="prose">La colonne mise en évidence est la tienne. « À activer » signifie que ça marche, à condition que tu le configures (scope Entra, paramètre du SDK, réglage du rapport). « À tester » signifie que la doc ne dit rien de précis.</p>
+  <div class="legend">
+    <span><span class="pill s-y">oui</span>natif</span>
+    <span><span class="pill s-c">à activer</span>config requise</span>
+    <span><span class="pill s-p">partiel</span>dégradé</span>
+    <span><span class="pill s-n">non</span>perdu</span>
+    <span><span class="pill s-u">à tester</span>non documenté</span>
+  </div>
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Filtrer la matrice">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">Tout</button>
+      <button type="button" id="f-lost" data-f="lost" aria-pressed="false">Perdu en mode A</button>
+      <button type="button" id="f-cfg" data-f="cfg" aria-pressed="false">À activer en mode A</button>
+      <button type="button" id="f-gain" data-f="gain" aria-pressed="false">Gagné en mode A</button>
+    </div>
+    <input class="search" id="q" type="search" placeholder="Rechercher (ex. signets, Excel)" aria-label="Rechercher une fonctionnalité">
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th scope="col">Fonctionnalité</th><th scope="col">Service (navigateur)</th><th scope="col" class="modeA">Exe · mode A</th><th scope="col">Exe · mode E</th><th scope="col">Détail / levier</th></tr></thead>
+      <tbody id="mx"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="pertes">
+  <span class="eyebrow">Mode A · Pertes</span>
+  <h2>Ce qui est perdu, et comment compenser</h2>
+  <p class="prose">Classé par impact probable pour des utilisateurs internes habitués au service. Pour chaque perte : ce qui se passe, puis le palliatif réel (API, réglage, ou « aucun »).</p>
+  <div class="loss-list">
+
+    <div class="loss">
+      <div><h3>Navigation du service <span class="sev sev-high">fort</span></h3>
+        <p>Pas d'Accueil, de Récents, de Parcourir, d'espaces de travail ni d'Apps. Le SDK n'affiche qu'un élément à la fois ; il faut écrire ton propre sélecteur de rapports. La navigation d'une app Power BI ne s'embarque nulle part, sauf dans SharePoint Online (nouveauté de novembre 2026).</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/guidance/powerbi-implementation-planning-usage-scenario-embed-for-your-organization">usage scenario · embed for your organization</a></span></div>
+      <div class="fix"><b>Palliatif</b>Construire l'arborescence avec les API REST <code>Get Groups</code> / <code>Get Reports In Group</code> (qui ne renvoient que ce que l'utilisateur a le droit de voir). Pour des rapports issus d'une app : permission <code>Create APIs</code> + ID de l'app dans l'URL, l'app devant être installée.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Abonnements e-mail <span class="sev sev-high">fort</span></h3>
+        <p>Fonction purement « service ». Aucun réglage ni API côté embarqué. Les abonnements existants continuent de fonctionner, mais les utilisateurs ne peuvent ni en créer ni en gérer depuis l'exe.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/collaborate-share/end-user-subscribe">end-user-subscribe</a></span></div>
+      <div class="fix"><b>Palliatif</b>Renvoyer vers le service pour s'abonner, ou recréer l'envoi avec <code>exportToFile</code> + un planificateur / l'action Power Automate « Export to File for Power BI Reports ». Les deux exigent une capacité Fabric / Premium / Embedded — <strong>pas de PPU</strong>.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Alertes de données <span class="sev sev-high">fort</span></h3>
+        <p>Les alertes sur vignettes de tableau de bord et les alertes de rapport (désormais Fabric Activator, capacité F64+ ou Premium) se créent uniquement dans le service.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/create-reports/service-set-data-alerts">service-set-data-alerts</a></span></div>
+      <div class="fix"><b>Palliatif</b>Créer les règles Activator dans le service : elles notifient par e-mail ou Teams, indépendamment de l'exe. Aucune création d'alerte depuis l'exe.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Analyser dans Excel <span class="sev sev-high">fort</span></h3>
+        <p>Pas de point d'entrée dans l'iframe. Pour les profils « finance » qui vivent dans Excel, c'est souvent la perte la plus visible.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/collaborate-share/office-integration/service-analyze-in-excel">service-analyze-in-excel</a></span></div>
+      <div class="fix"><b>Palliatif</b>Un bouton « Ouvrir dans Power BI » qui lance Edge sur le rapport ; ou fournir directement une connexion au modèle sémantique (point de terminaison XMLA en lecture).</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Extraction entre rapports <span class="sev sev-high">fort si utilisée</span></h3>
+        <p>La doc est explicite : « Cross-report drillthrough […] Only supported in the Power BI service. » L'extraction <em>à l'intérieur</em> d'un même rapport fonctionne.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/create-reports/desktop-drillthrough">desktop-drillthrough</a></span></div>
+      <div class="fix"><b>Palliatif</b>Ajouter une commande de menu personnalisée (<code>settings.extensions.commands</code> + événement <code>commandTriggered</code>), récupérer le point de données, puis ré-embarquer le rapport cible avec <code>filters</code>. Faisable, mais du code par cas d'usage.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Export PDF / PowerPoint <span class="sev sev-med">moyen</span></h3>
+        <p>La barre d'actions embarquée permet d'« exporter » selon la doc, sans que l'inventaire exact des boutons soit publié. L'alternative programmatique, <code>exportToFile</code>, est asynchrone, exige une capacité (<strong>pas PPU</strong>), plafonne à 250 Mo / 50 pages, et <strong>ignore les signets personnels et les filtres persistants</strong>.</p>
+        <span class="src"><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/embed-for-organization">embed-for-organization</a> · <a href="https://learn.microsoft.com/power-bi/developer/embedded/export-to">export-to</a></span></div>
+      <div class="fix"><b>Palliatif</b>Tester d'abord la barre d'actions (<code>bars.actionBar.visible</code>). Pour un bouton « Exporter cette vue » fiable : <code>bookmarksManager.capture()</code> → passer <code>state</code> à <code>exportToFile</code> → interroger <code>GetExportToFileStatus</code> → télécharger. Côté exe, gérer <code>DownloadStarting</code>.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Explorer ces données <span class="sev sev-med">moyen</span></h3>
+        <p>L'expérience « Explore » est une surface du service, sans commande ni réglage dans le SDK.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/explore-reports/explore-data-service">explore-data-service</a></span></div>
+      <div class="fix"><b>Palliatif</b>Aucun équivalent. Le plus proche : « Afficher sous forme de table » (<code>seeData</code>) ou le mode édition avec <code>permissions: Copy</code>.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Scorecards (métriques) <span class="sev sev-med">moyen</span></h3>
+        <p>« Scorecards aren't supported in embedded analytics. » Même chose pour tout élément Fabric autre qu'un rapport, tableau de bord, vignette, rapport paginé ou Q&A.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/create-reports/service-goals-introduction">service-goals-introduction</a></span></div>
+      <div class="fix"><b>Palliatif</b>Lien vers le service, ou reconstruire la vue KPI comme une page de rapport (sans check-ins ni permissions par objectif).</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Commentaires, partage Teams <span class="sev sev-med">moyen</span></h3>
+        <p>La commande <code>addComment</code> existe dans le menu d'un visuel, mais l'embarquabilité du volet Commentaires n'est pas documentée. « Discuter dans Teams » n'a aucun réglage côté SDK.</p>
+        <span class="src"><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/change-visual-commands">change-visual-commands</a></span></div>
+      <div class="fix"><b>Palliatif</b>Tester <code>addComment</code> dans ton tenant ; sinon renvoyer vers le service.</div>
+    </div>
+
+    <div class="loss">
+      <div><h3>Statistiques d'utilisation <span class="sev sev-low">faible à moyen</span></h3>
+        <p>Les deux pages de doc se contredisent : l'ancien rapport d'utilisation dit ne pas compter les vues embarquées « user owns data » ; le nouveau (préversion) affiche une plateforme « Embedded ». Le journal d'activité enregistre bien <code>ViewReport</code> par utilisateur, avec la méthode « Embedding for your organization », sans pouvoir identifier ton appli.</p>
+        <span class="src"><a href="https://learn.microsoft.com/power-bi/collaborate-share/service-usage-metrics">service-usage-metrics</a> · <a href="https://learn.microsoft.com/fabric/admin/operation-list">operation-list</a></span></div>
+      <div class="fix"><b>Palliatif</b>Extraire le journal d'activité chaque jour (rétention de 30 jours) et instrumenter l'exe toi-même (événements <code>loaded</code> / <code>rendered</code>, <code>report.getCorrelationId()</code>).</div>
+    </div>
+
+  </div>
+</section>
+
+<section id="activer">
+  <span class="eyebrow">Mode A · Configuration</span>
+  <h2>Ce qui marche, mais est désactivé par défaut</h2>
+  <p class="prose">C'est le piège le plus courant : on embarque un rapport, et on conclut qu'il « manque » des fonctionnalités alors qu'elles sont simplement éteintes. Le trio indispensable : <strong>barre d'actions</strong>, scope <code>UserState.ReadWrite.All</code>, et les drapeaux du SDK.</p>
+  <div class="cfg-grid">
+    <div class="cfg-block">
+      <h3>Côté Entra / admin Fabric</h3>
+      <ul>
+        <li>Inscription d'application en plateforme <strong>« Mobile and desktop applications »</strong> — client public, <strong>jamais de secret</strong> dans l'exe. Les exemples officiels sont des applis web avec secret : non transposables tels quels.</li>
+        <li>URI de redirection WAM : <code>ms-appx-web://Microsoft.AAD.BrokerPlugin/{client_id}</code>.</li>
+        <li>Scopes délégués Power BI : <code>Report.Read.All</code> (+ <code>Dataset.Read.All</code>, <code>Workspace.Read.All</code> selon le sélecteur), <code>UserState.ReadWrite.All</code> (favoris, signets perso, filtres persistants), <code>MLModel.Execute.All</code> (Copilot).</li>
+        <li><strong>Consentement administrateur</strong> accordé une fois, sinon chaque utilisateur voit une invite (ou est bloqué).</li>
+        <li>Paramètre de tenant <strong>« Embed content in apps »</strong> activé. Un service principal est <em>interdit</em> en mode A.</li>
+      </ul>
+    </div>
+    <div class="cfg-block">
+      <h3>Côté rapport et SDK</h3>
+      <ul>
+        <li>Barre d'actions : <code>settings.bars.actionBar.visible = true</code>, ou <code>&amp;actionBarEnabled=true</code> dans l'URL en mode lecture (seul le mode A la supporte en lecture). Coût : la position de la navigation des pages n'est plus pilotable par code.</li>
+        <li>Signets personnels : <code>personalBookmarksEnabled: true</code> + volet signets visible. <em>Aucune API</em> pour les manipuler.</li>
+        <li>Filtres persistants : activer dans les paramètres du rapport + <code>persistentFiltersEnabled: true</code>. Non modifiable après chargement.</li>
+        <li>Copilot : <code>embedUrl + "&amp;reportCopilotInEmbed=true"</code>, interrupteur Copilot du tenant, espace sur Premium ou Fabric payante.</li>
+        <li>Liens : <code>hyperlinkClickBehavior: RaiseEvent</code>, sinon chaque lien ouvre une fenêtre WebView2 orpheline.</li>
+      </ul>
+    </div>
+  </div>
+<pre>// Configuration minimale « parité service » en mode A
+const config = {
+  type: 'report',
+  tokenType: models.TokenType.Aad,              // jeton Entra de l'utilisateur
+  accessToken: tokenFromMsal,                  // obtenu côté .NET (MSAL + WAM)
+  embedUrl: report.embedUrl + '&amp;reportCopilotInEmbed=true',
+  id: report.id,
+  permissions: models.Permissions.Read,
+  settings: {
+    bars: { actionBar: { visible: true }, statusBar: { visible: true } },
+    personalBookmarksEnabled: true,
+    persistentFiltersEnabled: true,
+    hyperlinkClickBehavior: models.HyperlinkClickBehavior.RaiseEvent,
+    localeSettings: { language: 'fr-FR' }
+  },
+  eventHooks: { accessTokenProvider: () =&gt; askHostForFreshToken() } // powerbi-client ≥ 2.20.1
+};</pre>
+</section>
+
+<section id="gains">
+  <span class="eyebrow">Mode A · Gains</span>
+  <h2>Ce que l'embarqué apporte en plus</h2>
+  <p class="prose">Dans le service, le rapport est une boîte fermée : tu ne peux ni ajouter d'action, ni réagir à ce que fait l'utilisateur. Le SDK <code>powerbi-client</code> ouvre cette boîte dans les deux sens : ton code reçoit les événements du rapport, et peut le piloter. Les sept premiers points marchent aussi dans une page web ; le dernier est propre à l'exe.</p>
+  <div class="gains">
+    <div>
+      <h3>Tes commandes dans le clic droit et le menu « … »</h3>
+      <p>Ajouter des entrées au menu contextuel d'un visuel (clic droit, y compris sur un point de données) ou à son menu d'options, regroupées en sous-menus si besoin, sur tous les visuels ou seulement certains. L'événement reçu contient le visuel, la page et les points de données cliqués.</p>
+      <p class="api"><code>settings.extensions.commands</code> · <code>extend.visualContextMenu</code> / <code>visualOptionsMenu</code> · <code>groups</code> · événement <code>commandTriggered</code></p>
+<pre>extensions: { commands: [{
+  name: 'ouvrirClient', title: 'Ouvrir la fiche client',
+  selector: { $schema: 'http://powerbi.com/product/schema#visualSelector', visualName: 'TableClients' },
+  extend: { visualContextMenu: { title: 'Ouvrir la fiche client' } }
+}]}
+report.on('commandTriggered', e =&gt; {
+  if (e.detail.command === 'ouvrirClient') openCustomer(e.detail.dataPoints);
+});</pre>
+      <p class="lim">Limites : icônes seulement dans le menu « … » ; si l'en-tête du visuel est masqué, le menu « … » disparaît.</p>
+    </div>
+    <div>
+      <h3>Masquer ou griser les commandes natives</h3>
+      <p>Chaque commande intégrée (exporter les données, tri, spotlight, extraction, afficher sous forme de table, ajouter un commentaire…) peut être activée, grisée ou masquée, globalement ou visuel par visuel, et modifiée en cours de session.</p>
+      <p class="api"><code>settings.commands</code> (Enabled / Disabled / Hidden) · sélecteurs · <code>report.updateSettings()</code></p>
+      <p class="lim">Limite : le mode focus n'a pas de commande propre ; on ne peut que masquer tout l'en-tête.</p>
+    </div>
+    <div>
+      <h3>Réagir à ce que fait l'utilisateur</h3>
+      <p>Un bouton du rapport peut déclencher ton code ; une sélection dans un visuel peut mettre à jour ton interface ; un changement de page peut être journalisé. Tu peux aussi remplacer la boîte « Enregistrer sous » par la tienne.</p>
+      <p class="api"><code>buttonClicked</code> · <code>dataSelected</code> (filtres + points) · <code>visualClicked</code> · <code>selectionChanged</code> · <code>pageChanged</code> · <code>dataHyperlinkClicked</code> · <code>exportDataCompleted</code> · <code>saveAsTriggered</code> · <code>rendered</code></p>
+    </div>
+    <div>
+      <h3>Piloter le rapport depuis ton application</h3>
+      <p>Appliquer des filtres et l'état des segments selon le contexte de ton appli (client ouvert, site, période), changer de page, appliquer ou capturer un signet, changer de thème, de zoom ou de langue. L'utilisateur arrive directement sur la bonne vue.</p>
+      <p class="api"><code>setFilters</code> / <code>updateFilters</code> · <code>visual.setSlicerState</code> · <code>setPage</code> · <code>bookmarksManager.apply / capture</code> · <code>applyTheme</code> · <code>setZoom</code></p>
+      <p class="lim">Attention : un filtre d'URL ou de code n'est pas une sécurité. La restriction des données passe par la RLS.</p>
+    </div>
+    <div>
+      <h3>Recomposer la page</h3>
+      <p>Changer la position, la taille et la visibilité des visuels sans toucher au rapport publié ; adapter la disposition à la taille de la fenêtre ; laisser l'utilisateur choisir ses visuels. Ou embarquer des visuels isolés de plusieurs rapports sur un même écran.</p>
+      <p class="api"><code>layoutType: Custom</code> + <code>customLayout.pagesLayout</code> · <code>type: 'visual'</code></p>
+    </div>
+    <div>
+      <h3>Créer ou modifier des visuels à la volée</h3>
+      <p>Changer le type d'un visuel, ajouter ou retirer des champs, créer un visuel depuis ton interface, sans que l'utilisateur connaisse Power BI. Microsoft en fait une démonstration (« Quickly create personalized visuals »).</p>
+      <p class="api">Bibliothèque <code>powerbi-report-authoring</code> : <code>createVisual</code>, <code>changeType</code>, <code>addDataField</code></p>
+      <p class="lim">Limite : uniquement les visuels natifs ou déjà installés dans le rapport.</p>
+    </div>
+    <div>
+      <h3>Ton habillage, tes messages</h3>
+      <p>Masquer les volets, remplacer la navigation par la tienne, masquer les messages d'erreur Power BI pour afficher les tiens, intégrer le rapport dans ta charte.</p>
+      <p class="api"><code>settings.panes</code> · <code>hideErrors: true</code> + événement <code>error</code></p>
+    </div>
+    <div>
+      <h3>Récupérer les données affichées</h3>
+      <p>Lire les données d'un visuel filtré pour alimenter une action : c'est exactement la démo Microsoft « Go from insights to quick action », où un clic droit sur une liste de clients lance une campagne avec les clients filtrés.</p>
+      <p class="api"><code>visual.exportData(ExportDataType.Underlying)</code></p>
+      <p class="lim">Limite : 30 000 lignes, CSV, et pas pour les visuels utilisant des mesures du modèle ou du rapport.</p>
+    </div>
+    <div class="native">
+      <h3>Propre à l'exe : le pont vers ton logiciel et vers Windows</h3>
+      <p>C'est le seul gain qu'une page web n'a pas. Une commande de clic droit peut appeler ton code .NET : ouvrir l'écran correspondant dans ton logiciel métier, écrire un fichier local, imprimer sur une imprimante métier, lancer un processus, ou à l'inverse transmettre au rapport le contexte de ce que l'utilisateur fait dans ton appli. C'est l'argument le plus solide pour construire un exe.</p>
+      <p class="api">Page → .NET : <code>window.chrome.webview.postMessage()</code> + événement <code>WebMessageReceived</code> · .NET → page : <code>PostWebMessageAsJson()</code></p>
+<pre>// dans la page
+report.on('commandTriggered', e =&gt; window.chrome.webview.postMessage({ action: e.detail.command, points: e.detail.dataPoints }));
+// côté C#
+webView.CoreWebView2.WebMessageReceived += (s, a) =&gt; HandleReportAction(a.WebMessageAsJson);</pre>
+    </div>
+  </div>
+  <p class="prose" style="margin-top:16px">Ces gains compensent aussi certaines pertes : une commande personnalisée peut reconstruire l'extraction entre rapports, un bouton peut lancer un export PDF de la vue courante. Mais chacun représente du code à écrire et à maintenir. Si tu n'en exploites aucun, l'embarqué ne t'apporte que des pertes ; si tu en exploites plusieurs, il devient nettement plus riche que le service.</p>
+  <span class="src">Sources : <a href="https://learn.microsoft.com/javascript/api/overview/powerbi/change-visual-commands">change-visual-commands</a> · <a href="https://learn.microsoft.com/javascript/api/overview/powerbi/handle-events">handle-events</a> · <a href="https://learn.microsoft.com/javascript/api/overview/powerbi/custom-layout">custom-layout</a> · <a href="https://learn.microsoft.com/javascript/api/overview/powerbi/report-authoring-overview">report-authoring-overview</a> · <a href="https://learn.microsoft.com/javascript/api/overview/powerbi/showcase-export-events">showcase insights to action</a> · <a href="https://learn.microsoft.com/microsoft-edge/webview2/how-to/communicate-btwn-web-native">WebView2 web/native interop</a></span>
+</section>
+
+<section id="cout-exe">
+  <span class="eyebrow">Plomberie desktop</span>
+  <h2>Ce que l'exe ajoute à ta charge</h2>
+  <p class="prose">Rien de ceci n'est une limite de Power BI : c'est le travail qu'un navigateur faisait gratuitement et qui te revient. Chaque ligne est une cause documentée de « rapport blanc » ou de ticket support.</p>
+  <div class="tablebox">
+    <table class="plumb">
+      <thead><tr><th scope="col">Sujet</th><th scope="col">Pourquoi ça casse</th><th scope="col">Ce qu'il faut faire</th></tr></thead>
+      <tbody>
+        <tr><td>Expiration du jeton</td><td>L'API Power BI n'est pas une ressource CAE : jeton de 60 à 90 min, puis erreur <code>TokenExpired</code> (403) et rapport mort.</td><td><code>eventHooks.accessTokenProvider</code>, ou <code>report.setAccessToken()</code> sur minuterie + <code>visibilitychange</code> après mise en veille.</td></tr>
+        <tr><td>Connexion</td><td>Faire la connexion Entra <em>dans</em> la WebView2 est l'anti-pattern « embedded browser » que Microsoft déconseille : pas de SSO, accès conditionnel défaillant.</td><td>MSAL.NET + courtier WAM (<code>.WithBroker()</code>, handle de fenêtre obligatoire), repli sur le navigateur système. Cache persistant via <code>Microsoft.Identity.Client.Extensions.Msal</code>.</td></tr>
+        <tr><td>Accès conditionnel</td><td>« Exiger une stratégie de protection d'application » ne peut <strong>jamais</strong> être satisfaite par un exe maison (MAM Windows = Edge uniquement).</td><td>Vérifier les stratégies de ton tenant <em>avant</em> de coder. « Appareil conforme » passe via WAM.</td></tr>
+        <tr><td>Runtime WebView2</td><td>Absent sur certains Windows 10 / Server / LTSC. Version Evergreen mise à jour toutes les 2 à 4 semaines sous ton appli.</td><td>Détection à l'installation + bootstrapper Evergreen ; gérer <code>NewBrowserVersionAvailable</code>.</td></tr>
+        <tr><td>Dossier de données</td><td>Par défaut à côté de l'exe, donc dans <code>Program Files</code> : échec d'initialisation. Sur un profil itinérant : boucles de connexion.</td><td>Dossier explicite sous <code>%LOCALAPPDATA%</code>, nettoyé à la désinstallation.</td></tr>
+        <tr><td>Page hôte</td><td>Une page en <code>file://</code> n'a pas d'origine sécurisée.</td><td><code>SetVirtualHostNameToFolderMapping("appassets.example", …)</code> puis <code>https://appassets.example/index.html</code>.</td></tr>
+        <tr><td>Cookies tiers</td><td>Dans une iframe, les cookies Power BI sont tiers ; la prévention du suivi de WebView2 est en « Équilibré » par défaut.</td><td>Garder le jeton natif (pas de MSAL.js dans l'iframe) ; tester avec les réglages de prévention du suivi.</td></tr>
+        <tr><td>Réseau / proxy</td><td>La liste d'URL dépasse <code>*.powerbi.com</code> ; un proxy à inspection TLS provoque <code>ERR_CERT_*</code> et des visuels qui chargent sans fin.</td><td>Transmettre à l'IT les listes officielles Power BI + Fabric, plus <code>pbivisuals.powerbi.com</code> ; CA racine du proxy dans le magasin Windows.</td></tr>
+        <tr><td>Antivirus / EDR / WDAC</td><td>Première cause réelle de fenêtre blanche : processus enfants <code>msedgewebview2.exe</code> bloqués ou DLL injectées.</td><td>Règles par éditeur pour l'exe et le runtime, exclusions ciblées sur le dossier de données.</td></tr>
+        <tr><td>Fenêtres et liens</td><td>Le bloqueur de popups est désactivé dans WebView2 : fenêtres sans barre et impossibles à piloter.</td><td>Gérer <code>NewWindowRequested</code> et <code>LaunchingExternalUriScheme</code>.</td></tr>
+        <tr><td>Téléchargements</td><td>Les exports n'affichent pas de boîte « Enregistrer sous » ; le fichier atterrit dans un dossier par défaut.</td><td><code>DownloadStarting</code> + ta propre <code>SaveFileDialog</code>.</td></tr>
+        <tr><td>Impression</td><td><code>report.print()</code> = <code>window.print()</code> sur la page active ; <code>PrintToPdfAsync</code> de WebView2 ne capture pas l'iframe (bug ouvert, dépriorisé).</td><td>Préférer <code>exportToFile</code> → PDF, ou garder un menu contextuel avec « Imprimer ».</td></tr>
+        <tr><td>Clavier et focus</td><td>La WebView2 avale tes raccourcis ; la tabulation tourne en boucle dans le rapport.</td><td><code>AcceleratorKeyPressed</code>, <code>MoveFocusRequested</code>, <code>setComponentTabIndex(0)</code>.</td></tr>
+        <tr><td>Accessibilité</td><td>En WPF/WinForms, la WebView2 est un nœud opaque dans l'arbre UIA (les API de re-parentage sont Win32/C++ uniquement).</td><td><code>setComponentTitle</code>, <code>contrastMode</code> calé sur le thème Windows ; test Narrateur + NVDA.</td></tr>
+        <tr><td>Langue et formats</td><td>Un Français sur une WebView2 en en-US obtient des dates au format américain.</td><td><code>CoreWebView2EnvironmentOptions.Language</code> + <code>ScriptLocale</code>, et <code>localeSettings</code> dans le SDK.</td></tr>
+        <tr><td>Diagnostic</td><td>Plus de F12 ni de Fiddler côté utilisateur ; le support Microsoft commence toujours par « ça marche sur powerbi.com ? ».</td><td>Journaliser chaque <code>IError</code> du SDK, mode support caché avec DevTools.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="support">
+  <span class="eyebrow">Supportabilité</span>
+  <h2>Est-ce supporté par Microsoft ?</h2>
+  <p class="prose">Réponse honnête : <strong>ni oui ni non — c'est non documenté</strong>. Voici où se situe ton scénario et sur quoi repose cette conclusion.</p>
+  <div class="ladder">
+    <div class="rung"><span class="tag s-n">Explicitement non supporté</span><p>Secure embed (code « Site web ou portail ») dans une appli : <em>« The automatic authentication capabilities don't work when they're embedded in applications, including in mobile and desktop applications. »</em> À écarter.</p></div>
+    <div class="rung"><span class="tag s-n">Explicitement non supporté</span><p>Applications <strong>mobiles</strong> hébergeant Power BI dans une WebView : <em>« Embedding Power BI content in mobile applications that host web content through web components, embedded browser controls, or WebViews isn't supported. »</em> La phrase vise les applis mobiles, mais nomme exactement le type de contrôle qu'utiliserait ton exe.</p></div>
+    <div class="rung here"><span class="tag s-p">Non documenté — ton cas</span><p>Mode A dans une WebView2 d'application Windows. Aucune page ne l'autorise ou ne l'interdit. La liste des navigateurs supportés cite seulement Edge 120+, Chrome, Safari et Firefox. Tous les exemples officiels sont des applis web. À l'inverse, Power BI Desktop lui-même repose sur WebView2 : le moteur n'est pas le problème.</p></div>
+    <div class="rung"><span class="tag s-p">Non documenté, plus risqué</span><p>Mode E (WebView2 sur app.powerbi.com). Mêmes silences, plus un accès conditionnel démontré comme fragile (WebView2 absent de la liste Entra des navigateurs pour « appareil conforme », bug <a href="https://github.com/MicrosoftEdge/WebView2Feedback/issues/5595">#5595</a> ouvert en juin 2026). Et Microsoft a retiré sa propre appli Power BI pour Windows le 31 décembre 2023 en renvoyant vers le navigateur.</p></div>
+    <div class="rung"><span class="tag s-y">Supporté</span><p>Mode A dans une page web ouverte dans un navigateur supporté — le scénario des exemples Microsoft.</p></div>
+  </div>
+  <p class="prose small" style="margin-top:14px">Conséquence pratique : en cas de bug spécifique à l'hôte, le support te demandera de reproduire dans Edge. Si l'exe doit être un produit durable, obtiens une confirmation écrite via ton account team ou un ticket de support avant d'engager le développement.</p>
+</section>
+
+<section id="licences">
+  <span class="eyebrow">Coûts récurrents</span>
+  <h2>Licences et capacité en mode A</h2>
+  <div class="prose">
+    <p><strong>L'embarquement ne change pas la licence nécessaire</strong> : « There's no specific licensing requirement to embed for your organization. » Chaque utilisateur a besoin du même droit que pour ouvrir le rapport dans le navigateur.</p>
+    <ul>
+      <li><strong>Contenu sur Fabric F64+ ou Premium P</strong> : une licence Fabric gratuite suffit pour consulter.</li>
+      <li><strong>En dessous de F64, ou sur une SKU A</strong> : Pro ou PPU pour chaque lecteur.</li>
+      <li><strong>Service principal interdit</strong> en mode A : impossible de faire tourner l'exe sous un compte applicatif pour éviter les licences. Un exe ne réduit en rien le besoin de licences.</li>
+      <li><strong><code>exportToFile</code></strong> (export programmatique, abonnements maison) : capacité Fabric, Premium ou Embedded obligatoire ; <strong>non supporté en PPU</strong> pour les rapports Power BI.</li>
+      <li><strong>Copilot</strong> : capacité Premium ou Fabric payante + interrupteur Copilot du tenant.</li>
+      <li>Chaque export et chaque rendu consomme des CU de la capacité ; à suivre dans l'application Fabric Capacity Metrics.</li>
+    </ul>
+    <p class="small">Les prix publics actuels (Pro, PPU, F SKU) n'ont pas été revérifiés pendant cette recherche : consulte la page tarifaire Microsoft avant de chiffrer.</p>
+  </div>
+</section>
+
+<section id="echeances">
+  <span class="eyebrow">Calendrier</span>
+  <h2>Échéances qui touchent ton plan</h2>
+  <p class="prose">Valables pour tous les modes, y compris le navigateur : ne bâtis rien de neuf dessus.</p>
+  <div class="timeline">
+    <div class="tl past"><span class="when">Mai 2026</span><p>Fin de l'embarquement des visuels R/Python en « app owns data » et publication web. <em>Ne te concerne pas : le mode A est explicitement épargné.</em></p></div>
+    <div class="tl"><span class="when">Janv. 2027</span><p>Fin du Copilot autonome (web, Teams, mobile) et du Copilot à l'échelle d'une app. <strong>Le Copilot dans un rapport reste supporté</strong>, y compris en embarqué.</p></div>
+    <div class="tl"><span class="when">Févr. 2027</span><p>Disparition des expériences Q&amp;A, y compris le Q&amp;A embarqué. Microsoft recommande Copilot.</p></div>
+    <div class="tl"><span class="when">Mai 2027</span><p>Retrait complet des visuels R et Python, y compris dans les rapports déjà publiés. À remplacer quel que soit le mode d'hébergement.</p></div>
+  </div>
+</section>
+
+<section id="alternatives">
+  <span class="eyebrow">Options</span>
+  <h2>Alternatives à évaluer avant de coder</h2>
+  <p class="prose">Commence par te demander <em>pourquoi</em> tu veux un exe. Selon la motivation, une option sans code donne souvent le même résultat sans aucune perte.</p>
+  <div class="alt">
+    <div><h3>Edge « Installer ce site en tant qu'application »</h3>
+      <p>Fenêtre dédiée, icône dans la barre des tâches et le menu Démarrer, sans barre d'adresse. Déployable à tout le parc par stratégie (<code>WebAppInstallForceList</code>).</p>
+      <p class="gives"><span class="pill s-y">0 perte</span> <span class="pill s-y">0 code</span> navigateur supporté. Ne remplace pas : l'intégration avec une appli métier locale.</p></div>
+    <div><h3>Apps d'organisation Fabric (GA)</h3>
+      <p>Regrouper plusieurs rapports avec navigation, sections, icône, couleur et audiences. Filtres persistants activés par défaut.</p>
+      <p class="gives"><span class="pill s-y">supporté</span> répond au besoin « mes rapports avec ma navigation ». Le chrome Fabric reste visible (mode Focus par session).</p></div>
+    <div><h3>Composant WebPart Power BI de SharePoint Online</h3>
+      <p>Portail interne avec SSO, RLS, et interrupteurs pour la navigation, le volet filtres et la barre d'actions. Depuis novembre 2026, une app d'espace de travail complète peut y être embarquée.</p>
+      <p class="gives"><span class="pill s-p">quelques pertes</span> pas d'invités B2B dans le composant.</p></div>
+    <div><h3>Application Power BI dans Teams</h3>
+      <p>Presque tout le service, hébergé et supporté par Microsoft dans une appli de bureau — c'est la version « officielle » de l'idée d'un exe.</p>
+      <p class="gives"><span class="pill s-p">quelques pertes</span> pas de filtres d'URL ni de signets personnels dans les onglets.</p></div>
+  </div>
+  <p class="prose" style="margin-top:18px"><strong>Hors connexion : impossible dans un exe.</strong> Seules les applis mobiles iOS/Android mettent en cache (modèles importés uniquement, 250 Mo). Un exe WebView2 n'apporte aucune capacité hors ligne ; le seul artefact consultable sans réseau est un fichier produit par <code>exportToFile</code>.</p>
+</section>
+
+<section id="reco">
+  <span class="eyebrow">Décision</span>
+  <h2>Recommandation</h2>
+  <div class="reco">
+    <p class="big">Le mode A vaut le coup si tu exploites ses personnalisations ; l'exe vaut le coup si tu as besoin du pont vers un logiciel de bureau. Sinon, l'un comme l'autre ne t'apportent que des pertes.</p>
+    <p class="prose">Si l'objectif est « une appli dédiée à nos rapports », Edge installé en tant qu'application + une app d'organisation donnent le résultat sans aucune perte, sans code et dans un cadre supporté. Si l'objectif est d'afficher des rapports <em>dans</em> un logiciel métier, avec un contexte transmis (client sélectionné → filtre du rapport), alors le mode A dans une WebView2 est le bon choix — à condition de l'assumer comme une page web hébergée dans un shell fin, avec un bouton « Ouvrir dans Power BI » vers Edge pour tout ce qui est perdu. Le mode E est à réserver à un usage interne ponctuel, pas à un produit.</p>
+  </div>
+  <div class="tree">
+    <div class="branch"><span class="if">Tu veux surtout une fenêtre dédiée, une icône, ta marque</span><span class="then">Edge « installer en tant qu'application » + app d'organisation. Pas d'exe.</span></div>
+    <div class="branch"><span class="if">Tu veux regrouper plusieurs rapports avec ta navigation</span><span class="then">App d'organisation Fabric, ou portail SharePoint. Pas d'exe.</span></div>
+    <div class="branch"><span class="if">Tu veux des actions métier au clic droit, réagir aux sélections, recomposer les pages — sans lien avec un logiciel local</span><span class="then">Mode A, mais dans une <strong>application web</strong> interne (supportée, sans runtime ni installeur). L'exe n'apporte rien de plus ici.</span></div>
+    <div class="branch"><span class="if">Tu veux intégrer des rapports dans un logiciel de bureau existant, filtrés selon son contexte</span><span class="then">Mode A en WebView2, MSAL + WAM, renvoi vers le service pour les fonctionnalités perdues.</span></div>
+    <div class="branch"><span class="if">Tes utilisateurs dépendent des abonnements, des alertes, d'Excel ou de l'extraction entre rapports</span><span class="then">Garde le service comme surface principale ; l'exe ne serait qu'un complément.</span></div>
+    <div class="branch"><span class="if">Ton tenant impose « Exiger une stratégie de protection d'application »</span><span class="then">Bloquant pour tout exe maison. Seuls Edge et Windows App satisfont cette règle.</span></div>
+    <div class="branch"><span class="if">Tu as besoin du hors-connexion</span><span class="then">Aucun exe ne le fournira. PDF exportés, ou applis mobiles.</span></div>
+  </div>
+
+  <h3 style="margin-top:28px">Si tu construis quand même : l'ordre des travaux</h3>
+  <ol class="steps">
+    <li><strong>Vérifier les bloqueurs avant d'écrire une ligne</strong> : stratégies d'accès conditionnel, paramètre de tenant « Embed content in apps », Private Link (qui coupe l'export PDF/PPT et Copilot), capacité disponible.</li>
+    <li><strong>Prototype jetable</strong> : WebView2 + page SDK + jeton MSAL/WAM, testé sur un poste réel du parc (proxy, antivirus, accès conditionnel). C'est là que les projets meurent, pas dans le code Power BI.</li>
+    <li>Inscription Entra en client public, scopes, consentement administrateur.</li>
+    <li>Renouvellement du jeton via <code>accessTokenProvider</code>, cache MSAL persistant.</li>
+    <li>Activation de la barre d'actions, des signets personnels, des filtres persistants, de Copilot si capacité.</li>
+    <li>Sélecteur de rapports via l'API REST ; bouton « Ouvrir dans Power BI ».</li>
+    <li>Plomberie WebView2 : dossier de données, hôte virtuel, popups, téléchargements, impression, clavier, langue, DPI.</li>
+    <li>Installeur signé + bootstrapper du runtime, mise à jour automatique, documentation IT (URL, exclusions antivirus).</li>
+    <li>Journalisation des <code>IError</code>, mode support, extraction quotidienne du journal d'activité.</li>
+  </ol>
+  <p class="small prose">Ordre de grandeur, <em>estimation personnelle non sourcée</em> pour un développeur .NET à l'aise avec le web : 3 à 5 semaines pour une version fiable, puis quelques jours par trimestre pour suivre WebView2, le SDK et les changements du service.</p>
+
+  <h3 style="margin-top:24px">Les questions qui changeraient cette recommandation</h3>
+  <ul class="prose small">
+    <li>Tes rapports sont-ils sur une capacité F64+ / Premium ? (export programmatique, Copilot, lecteurs en licence gratuite)</li>
+    <li>Quelles stratégies d'accès conditionnel s'appliquent à l'application Power BI dans ton tenant ?</li>
+    <li>L'exe doit-il échanger du contexte avec un logiciel local, ou seulement afficher des rapports ?</li>
+    <li>Tes utilisateurs se servent-ils aujourd'hui des abonnements, des alertes, d'Analyser dans Excel ou de l'extraction entre rapports ?</li>
+    <li>Le tenant utilise-t-il Private Link ?</li>
+  </ul>
+</section>
+
+<section id="methode">
+  <span class="eyebrow">Transparence</span>
+  <h2>Méthode et limites</h2>
+  <div class="prose small">
+    <p>Recherche menée les 19 et 20 novembre 2026 par plusieurs agents en parallèle, chacun sur un axe (limites officielles, fonctionnalités de consommation, export, authentification, runtime WebView2, gouvernance, alternatives), avec l'obligation de ne citer que des pages effectivement consultées. Environ 140 constats, principalement issus de Microsoft Learn, complétés par les dépôts GitHub WebView2Feedback et PowerBI-JavaScript.</p>
+    <p><strong>Ce qui n'a pas été fait</strong> : la passe de vérification contradictoire automatique a été interrompue, de même que les axes « licences et prix », « architecture de référence » et « évolution du SDK ». Pour compenser, j'ai revérifié moi-même dans la doc actuelle les affirmations qui pèsent le plus sur la décision : la phrase sur les WebViews (et sa portée limitée au mobile), les fonctionnalités réservées au mode A et leurs prérequis, l'extraction entre rapports réservée au service, et les limites d'<code>exportToFile</code> (capacité, PPU, signets personnels).</p>
+    <p><strong>Non couvert ou incertain</strong> : prix publics actuels ; position contractuelle des conditions d'utilisation sur un shell tiers ; inventaire exact des boutons de la barre d'actions embarquée ; comportement réel des infobulles de page et du volet Commentaires en embarqué. Les cases « à tester » de la matrice signalent ces zones.</p>
+  </div>
+</section>
+
+<section id="sources">
+  <span class="eyebrow">Références</span>
+  <h2>Sources principales</h2>
+  <ul class="sources">
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/embed-for-organization">Use the action bar to enhance user experience (embed for your organization)</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/configure-report-settings">Configure report settings</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/personal-bookmarks">Personal bookmarks</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/enable-persistent-filters">Enable persistent filters</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/change-visual-commands">Change visual commands</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/refresh-token">Refresh the access token</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/mobile">Embedding a report with mobile layout (phrase sur les WebViews)</a></li>
+    <li><a href="https://learn.microsoft.com/javascript/api/overview/powerbi/accessibility">Accessibility in embedded analytics</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/guidance/powerbi-implementation-planning-usage-scenario-embed-for-your-organization">Usage scenario: Embed for your organization</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/developer/embedded/embedded-analytics-power-bi">What is Power BI embedded analytics?</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/developer/embedded/embedded-capacity">Capacity and SKUs in embedded analytics</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/developer/embedded/export-to">Export Power BI report to file</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/developer/embedded/embed-sample-for-your-organization">Embed sample for your organization</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/developer/embedded/embedded-troubleshoot">Troubleshoot embedded applications</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/collaborate-share/service-embed-secure">Secure embed (limitations en application de bureau)</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/create-reports/desktop-drillthrough">Drillthrough (extraction entre rapports)</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/create-reports/service-goals-introduction">Goals / scorecards limitations</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/collaborate-share/service-usage-metrics">Usage metrics</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/connect-data/service-r-packages-support">R packages support (échéances R/Python)</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/developer/embedded/qanda">Q&amp;A in embedded analytics (retrait février 2027)</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/fundamentals/whats-new">What's new in Power BI (novembre 2026)</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/fundamentals/power-bi-browsers">Supported browsers for Power BI and Fabric</a></li>
+    <li><a href="https://learn.microsoft.com/lifecycle/announcements/power-bi-windows-app-retirement-12-31-2023">Retrait de l'app Power BI pour Windows (31/12/2023)</a></li>
+    <li><a href="https://learn.microsoft.com/fabric/security/power-bi-allow-list-urls">Power BI URLs to allow</a></li>
+    <li><a href="https://learn.microsoft.com/fabric/enterprise/powerbi/service-security-sensitivity-label-overview">Sensitivity labels in Power BI</a></li>
+    <li><a href="https://learn.microsoft.com/entra/msal/dotnet/acquiring-tokens/desktop-mobile/wam">MSAL.NET : WAM broker</a></li>
+    <li><a href="https://learn.microsoft.com/entra/msal/dotnet/how-to/token-cache-serialization">MSAL.NET : token cache serialization</a></li>
+    <li><a href="https://learn.microsoft.com/entra/identity/conditional-access/concept-continuous-access-evaluation">Continuous access evaluation</a></li>
+    <li><a href="https://learn.microsoft.com/intune/app-management/protection/ref-settings-windows">Intune app protection on Windows</a></li>
+    <li><a href="https://learn.microsoft.com/windows/apps/develop/ui/controls/webview2">WebView2 in WinUI (anti-pattern « embedded browser »)</a></li>
+    <li><a href="https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution">WebView2 : distribution du runtime</a></li>
+    <li><a href="https://learn.microsoft.com/microsoft-edge/webview2/concepts/user-data-folder">WebView2 : user data folder</a></li>
+    <li><a href="https://learn.microsoft.com/microsoft-edge/webview2/concepts/working-with-local-content">WebView2 : contenu local / hôte virtuel</a></li>
+    <li><a href="https://learn.microsoft.com/deployedge/webview2-security-tools">WebView2 et outils de sécurité (AV, EDR, TLS)</a></li>
+    <li><a href="https://github.com/MicrosoftEdge/WebView2Feedback/issues/5595">WebView2Feedback #5595 — accès conditionnel</a></li>
+    <li><a href="https://github.com/MicrosoftEdge/WebView2Feedback/issues/3749">WebView2Feedback #3749 — impression d'une iframe Power BI</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/explore-reports/org-app-items">Org apps (apps d'organisation)</a></li>
+    <li><a href="https://learn.microsoft.com/power-bi/explore-reports/mobile/mobile-apps-offline-data">Mobile apps : données hors connexion</a></li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+(function(){
+  // [catégorie, fonctionnalité, service, mode A, mode E, note]  — y oui · c à activer · p partiel · n non · u à tester
+  var R = [
+    ["Navigation & partage","Accueil, Récents, Parcourir, espaces de travail","y","n","y","Un seul élément par iframe ; sélecteur à coder via l'API REST."],
+    ["Navigation & partage","Navigation d'une app / app d'organisation","y","n","y","Rapports d'une app embarquables un par un (app installée, permission Create APIs)."],
+    ["Navigation & partage","Navigation entre pages du rapport","y","y","y","Position non pilotable par code si la barre d'actions est affichée."],
+    ["Navigation & partage","Favoris","y","c","y","Barre d'actions + UserState.ReadWrite.All."],
+    ["Navigation & partage","Partager","y","c","y","Via la barre d'actions (mode A uniquement)."],
+    ["Navigation & partage","Discuter dans Teams","y","u","y","Aucun réglage SDK documenté."],
+    ["Navigation & partage","Lien « Ouvrir dans Power BI »","y","c","y","À coder ; intercepter les liens via hyperlinkClickBehavior: RaiseEvent."],
+    ["Interactivité","Volet Filtres","y","y","y","settings.panes.filters (visible, développé)."],
+    ["Interactivité","Segments et synchronisation","y","y","y","API slicers et panes.syncSlicers."],
+    ["Interactivité","Exploration (drill down / up)","y","y","y","Commandes drill / expandCollapse."],
+    ["Interactivité","Extraction dans le rapport","y","y","y","Commande drillthrough, boutons d'extraction."],
+    ["Interactivité","Extraction entre rapports","y","n","y","« Only supported in the Power BI service » ; reconstruire par commande personnalisée."],
+    ["Interactivité","Infobulles de page","y","u","y","Probablement conservées, non confirmé par la doc."],
+    ["Interactivité","Mode focus, spotlight, tri","y","y","y","Focus non masquable seul (il faut masquer tout l'en-tête du visuel)."],
+    ["Interactivité","Afficher sous forme de table / voir les enregistrements","y","y","y","Commande seeData."],
+    ["Interactivité","Plein écran","y","c","y","report.fullscreen()."],
+    ["Interactivité","Zoom","y","c","y","statusBar visible ou report.setZoom()."],
+    ["Interactivité","Mise en page mobile","y","c","y","layoutType MobilePortrait ; la barre de navigation des pages disparaît."],
+    ["Personnalisation","Signets du rapport","y","y","y","bookmarksManager : get, apply, capture, diaporama."],
+    ["Personnalisation","Signets personnels","y","c","y","personalBookmarksEnabled + scope + volet signets ; aucune API."],
+    ["Personnalisation","Filtres persistants + Rétablir par défaut","y","c","y","Réglage du rapport + persistentFiltersEnabled ; resetPersistentFilters()."],
+    ["Personnalisation","Personnaliser ce visuel","y","y","y","Réglage du rapport ; sauvegarde via les signets personnels."],
+    ["Personnalisation","Mode édition, Enregistrer une copie","y","c","y","viewMode Edit + permissions All ou Copy."],
+    ["Export & impression","Exporter les données d'un visuel","y","y","y","Commande exportData = boîte native ; l'API exportData() est limitée à 30 000 lignes CSV."],
+    ["Export & impression","Exporter en PDF / PowerPoint","y","c","y","Barre d'actions (à tester) ou exportToFile : capacité, pas PPU, ignore signets perso."],
+    ["Export & impression","Analyser dans Excel","y","n","y","Pas de point d'entrée ; lien vers le service ou connexion XMLA."],
+    ["Export & impression","Imprimer","y","p","y","report.print() = window.print() de la page active ; préférer un PDF."],
+    ["Export & impression","Copier le visuel en image","y","y","y","Icône de l'en-tête du visuel."],
+    ["Export & impression","Téléchargement des fichiers exportés","y","c","c","Dans l'exe : gérer DownloadStarting, sinon dossier par défaut."],
+    ["Collaboration & suivi","Commentaires","y","u","y","Commande addComment présente ; volet Commentaires non documenté."],
+    ["Collaboration & suivi","Abonnements e-mail","y","n","y","Service uniquement ; exportToFile + planificateur comme palliatif."],
+    ["Collaboration & suivi","Alertes de données (vignettes, Activator)","y","n","y","Création dans le service ; les notifications partent sans l'exe."],
+    ["Collaboration & suivi","Scorecards (métriques)","y","n","y","« Scorecards aren't supported in embedded analytics »."],
+    ["Collaboration & suivi","Statistiques d'utilisation","y","p","y","Docs contradictoires ; journal d'activité fiable, appli non identifiable."],
+    ["IA","Copilot dans le rapport","y","c","y","Barre d'actions + MLModel.Execute.All + &reportCopilotInEmbed=true + capacité payante."],
+    ["IA","Q&A","y","y","y","Disparaît en février 2027, tous modes."],
+    ["IA","Explorer ces données","y","n","y","Aucune commande ni réglage SDK."],
+    ["IA","Narration (smart narrative, visuel Copilot)","y","y","y","Visuel narratif Copilot supporté en user owns data."],
+    ["IA","Visuels R / Python","y","y","y","Retrait total en mai 2027, tous modes."],
+    ["Sécurité & identité","RLS / OLS","y","y","y","Évalués sur l'identité réelle (pas de RLS pour Admin/Membre/Contributeur)."],
+    ["Sécurité & identité","Étiquettes de confidentialité","y","y","y","Bannière visible en embarqué ; application sur les exports."],
+    ["Sécurité & identité","Audit par utilisateur","y","y","y","ViewReport, méthode « Embedding for your organization »."],
+    ["Sécurité & identité","Invités B2B","y","y","y","Ne pas forcer le compte Windows (OperatingSystemAccount)."],
+    ["Sécurité & identité","Accès conditionnel « appareil conforme »","y","y","p","Mode A : via WAM. Mode E : AllowSingleSignOnUsingOSPrimaryAccount, bug #5595."],
+    ["Sécurité & identité","Accès conditionnel « protection d'application »","y","n","n","MAM Windows = Edge et Windows App uniquement."],
+    ["Sécurité & identité","Éléments Fabric (lakehouse, notebooks…)","y","n","y","Seuls rapports, visuels, paginés, Q&A, tableaux de bord, vignettes s'embarquent."],
+    ["Sécurité & identité","Consultation hors connexion","n","n","n","N'existe pas sur Windows ; seules les applis mobiles mettent en cache."],
+    ["Accessibilité","Lecteurs d'écran, navigation clavier","y","p","p","WebView2 opaque dans l'arbre UIA ; setComponentTitle, setComponentTabIndex (mode A)."],
+    ["Accessibilité","Contraste élevé","y","c","p","Mode A : contrastMode ; mode E : détection automatique seulement."],
+    ["Personnalisation par le code","Commandes personnalisées au clic droit et dans le menu « … »","n","c","n","extensions.commands + événement commandTriggered (reçoit les points de données)."],
+    ["Personnalisation par le code","Masquer ou griser des commandes natives","n","c","n","settings.commands : Enabled, Disabled, Hidden, par visuel."],
+    ["Personnalisation par le code","Réagir aux clics, sélections, boutons du rapport","n","c","n","buttonClicked, dataSelected, visualClicked, pageChanged…"],
+    ["Personnalisation par le code","Filtres et pages pilotés par ton application","n","c","n","setFilters, setSlicerState, setPage, bookmarksManager.apply."],
+    ["Personnalisation par le code","Mise en page recomposée, visuels isolés","n","c","n","layoutType Custom + customLayout ; embed type 'visual'."],
+    ["Personnalisation par le code","Création ou modification de visuels par code","n","c","n","powerbi-report-authoring : createVisual, changeType."],
+    ["Personnalisation par le code","Messages d'erreur et habillage à toi","n","c","n","hideErrors + événement error ; panes masqués."],
+    ["Personnalisation par le code","Actions dans ton logiciel ou dans Windows","n","c","n","Propre à l'exe : chrome.webview.postMessage ↔ WebMessageReceived."]
+  ];
+  var L = {y:["s-y","oui"],c:["s-c","à activer"],p:["s-p","partiel"],n:["s-n","non"],u:["s-u","à tester"]};
+  var tb = document.getElementById("mx"), q = document.getElementById("q"), cnt = document.getElementById("count");
+  var filter = "all";
+  function pill(s){ return '<span class="pill '+L[s][0]+'">'+L[s][1]+'</span>'; }
+  function esc(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function render(){
+    var term = (q.value||"").trim().toLowerCase(), html = "", last = "", n = 0;
+    R.forEach(function(r){
+      if (filter==="lost" && !(r[3]==="n" || r[3]==="p")) return;
+      if (filter==="cfg" && r[3]!=="c") return;
+      if (filter==="gain" && !(r[2]==="n" && (r[3]==="y" || r[3]==="c"))) return;
+      if (term && (r[1]+" "+r[5]+" "+r[0]).toLowerCase().indexOf(term)===-1) return;
+      if (r[0]!==last){ html += '<tr class="cat"><td colspan="5">'+esc(r[0])+'</td></tr>'; last = r[0]; }
+      html += '<tr><td class="feat">'+esc(r[1])+'</td><td class="st">'+pill(r[2])+'</td><td class="st colA">'+pill(r[3])+'</td><td class="st">'+pill(r[4])+'</td><td class="note">'+esc(r[5])+'</td></tr>';
+      n++;
+    });
+    tb.innerHTML = html || '<tr><td colspan="5" class="note">Aucune fonctionnalité ne correspond.</td></tr>';
+    cnt.textContent = n + " / " + R.length + " fonctionnalités";
+  }
+  document.querySelectorAll(".seg button").forEach(function(b){
+    b.addEventListener("click", function(){
+      filter = b.getAttribute("data-f");
+      document.querySelectorAll(".seg button").forEach(function(x){ x.setAttribute("aria-pressed", x===b ? "true" : "false"); });
+      render();
+    });
+  });
+  q.addEventListener("input", render);
+  render();
+})();
+</script>
